@@ -1,0 +1,2805 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COPPA - Apreensões de Animais</title>
+    
+    <meta name="theme-color" content="#8B0000">
+    <meta name="description" content="Sistema de Controle de Apreensões de Animais Silvestres - COPPA">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            doc, 
+            updateDoc, 
+            deleteDoc, 
+            orderBy, 
+            query,
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyUe9yMRFqC6FaaspP6CuzezWxmangx2g",
+            authDomain: "apreensao-30b30.firebaseapp.com",
+            projectId: "apreensao-30b30",
+            storageBucket: "apreensao-30b30.firebasestorage.app",
+            messagingSenderId: "996577557157",
+            appId: "1:996577557157:web:1a41ddc15fb65b9bc6ab4c",
+            measurementId: "G-GCND642GTB"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        window.firebaseDB = {
+            db, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, orderBy, query, serverTimestamp
+        };
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --danger-gradient: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            --success-gradient: linear-gradient(135deg, #059669 0%, #047857 100%);
+            --warning-gradient: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            --info-gradient: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+            --dark-gradient: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            --gold-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            
+            --glass-bg: rgba(15, 23, 42, 0.8);
+            --glass-bg-light: rgba(30, 41, 59, 0.6);
+            --glass-border: rgba(148, 163, 184, 0.2);
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-light: #94a3b8;
+            
+            --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.4);
+            --shadow-heavy: 0 25px 50px rgba(0, 0, 0, 0.5);
+            
+            --border-radius: 20px;
+            --border-radius-small: 12px;
+            --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-fast: all 0.2s ease;
+        }
+
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Particles Background */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        /* Glass Morphism Effects */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-light);
+        }
+
+        .glass-intense {
+            background: var(--glass-bg-light);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* Header with Enhanced Design */
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 40px;
+            margin: 25px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            animation: slideInDown 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(248, 250, 252, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-50px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .header h1 {
+            color: #f8fafc;
+            font-size: 3.2em;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.4em;
+            font-weight: 400;
+            opacity: 0;
+            animation: fadeInUp 1s 0.5s forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 25px;
+        }
+
+        /* Enhanced Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .spinner-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .spinner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .spinner:nth-child(2) {
+            animation-delay: 0.1s;
+            transform: scale(0.8);
+        }
+
+        .spinner:nth-child(3) {
+            animation-delay: 0.2s;
+            transform: scale(0.6);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: white;
+            margin-top: 30px;
+            font-size: 1.2em;
+            font-weight: 500;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Premium Cards */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 35px;
+            margin-bottom: 35px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-medium);
+            animation: fadeInUp 0.8s ease;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--danger-gradient);
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        .card:hover {
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .card h3 {
+            margin-bottom: 25px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.4em;
+            font-weight: 700;
+        }
+
+        /* Enhanced Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .stat-card {
+            background: var(--glass-bg-light);
+            border-radius: var(--border-radius);
+            padding: 35px 25px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            animation: fadeInScale 0.6s ease;
+            animation-delay: calc(var(--index) * 0.1s);
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.8) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--danger-gradient);
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .stat-card:nth-child(1) { --gradient: var(--danger-gradient); }
+        .stat-card:nth-child(2) { --gradient: var(--success-gradient); }
+        .stat-card:nth-child(3) { --gradient: var(--warning-gradient); }
+        .stat-card:nth-child(4) { --gradient: var(--info-gradient); }
+
+        .stat-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2));
+            animation: float 3s ease-in-out infinite;
+            animation-delay: calc(var(--index) * 0.2s);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .stat-number {
+            font-size: 3.5em;
+            font-weight: 800;
+            background: var(--danger-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            animation: countUp 2s ease-out;
+        }
+
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        /* Enhanced Buttons */
+        .btn {
+            background: var(--danger-gradient);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: var(--border-radius-small);
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: var(--transition);
+            margin: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-light);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-success { background: var(--success-gradient); }
+        .btn-warning { background: var(--warning-gradient); }
+        .btn-info { background: var(--info-gradient); }
+        .btn-danger { background: var(--danger-gradient); }
+
+        /* Charts Container with Premium Design */
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 35px;
+            margin-bottom: 50px;
+        }
+
+        .chart-card {
+            background: var(--glass-bg-light);
+            border-radius: var(--border-radius);
+            padding: 35px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-medium);
+            height: 450px;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--danger-gradient);
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .chart-title {
+            font-size: 1.6em;
+            margin-bottom: 25px;
+            text-align: center;
+            color: var(--text-primary);
+            font-weight: 700;
+            position: relative;
+        }
+
+        .chart-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: var(--danger-gradient);
+            border-radius: 2px;
+        }
+
+        .chart-card canvas {
+            flex: 1;
+            max-height: 350px;
+        }
+
+        /* Enhanced Form Elements */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1.1em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid rgba(148, 163, 184, 0.3);
+            border-radius: var(--border-radius-small);
+            font-size: 1em;
+            transition: var(--transition);
+            font-family: inherit;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--text-primary);
+        }
+
+        .form-group select {
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text-primary);
+        }
+
+        .form-group select option {
+            background: #1e293b;
+            color: var(--text-primary);
+            padding: 10px;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-light);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+            background: rgba(248, 250, 252, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Enhanced Animal Tags */
+        .animal-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .animal-tag {
+            background: var(--danger-gradient);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideInScale 0.4s ease;
+            box-shadow: var(--shadow-light);
+            transition: var(--transition);
+        }
+
+        .animal-tag:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: var(--shadow-medium);
+        }
+
+        @keyframes slideInScale {
+            from { opacity: 0; transform: scale(0.8) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .animal-tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 8px;
+            opacity: 0.8;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-fast);
+        }
+
+        .animal-tag .remove:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* Enhanced Timeline */
+        .timeline-item {
+            background: var(--glass-intense);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin-bottom: 25px;
+            border-left: 5px solid;
+            border-image: var(--primary-gradient) 1;
+            box-shadow: var(--shadow-light);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--danger-gradient);
+        }
+
+        .timeline-item:hover {
+            transform: translateX(10px) scale(1.02);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .timeline-date {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1.1em;
+        }
+
+        .timeline-location {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Enhanced Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: var(--glass-intense);
+            backdrop-filter: blur(25px);
+            margin: 30px auto;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 900px;
+            position: relative;
+            animation: modalSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-50px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .close {
+            color: var(--text-light);
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .close:hover {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        /* Enhanced Location Stats */
+        .location-stats {
+            background: var(--glass-intense);
+            border-radius: var(--border-radius);
+            padding: 35px;
+            box-shadow: var(--shadow-medium);
+            border: 1px solid var(--glass-border);
+        }
+
+        .location-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: var(--transition);
+        }
+
+        .location-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(10px);
+            border-radius: var(--border-radius-small);
+            padding-left: 15px;
+        }
+
+        .location-count {
+            background: var(--danger-gradient);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            box-shadow: var(--shadow-light);
+        }
+
+        /* Enhanced Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 10000;
+            max-width: 450px;
+        }
+
+        .toast {
+            background: var(--glass-intense);
+            backdrop-filter: blur(25px);
+            border-radius: var(--border-radius-small);
+            padding: 20px 25px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow-medium);
+            border-left: 5px solid;
+            transform: translateX(500px);
+            opacity: 0;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.success { border-left-color: #4ecdc4; }
+        .toast.error { border-left-color: #ff6b6b; }
+        .toast.warning { border-left-color: #feca57; }
+        .toast.info { border-left-color: #74b9ff; }
+
+        .toast-icon {
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+
+        .toast-message {
+            font-weight: 500;
+            color: white;
+        }
+
+        /* Floating Action Button */
+        .floating-action {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 80px;
+            height: 80px;
+            background: var(--danger-gradient);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 2.5em;
+            cursor: pointer;
+            box-shadow: var(--shadow-medium);
+            transition: var(--transition);
+            z-index: 100;
+            animation: bounceIn 1.2s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3) rotate(-180deg); }
+            50% { opacity: 1; transform: scale(1.1) rotate(-90deg); }
+            70% { transform: scale(0.9) rotate(0deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        .floating-action:hover {
+            transform: scale(1.15) rotate(90deg);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .floating-action:active {
+            transform: scale(1.05) rotate(90deg);
+        }
+
+        /* Sync Status */
+        .sync-status {
+            position: fixed;
+            bottom: 140px;
+            right: 40px;
+            background: var(--glass-intense);
+            backdrop-filter: blur(25px);
+            padding: 15px 25px;
+            border-radius: 25px;
+            box-shadow: var(--shadow-light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95em;
+            color: white;
+            border: 1px solid var(--glass-border);
+        }
+
+        .sync-icon {
+            animation: rotate 2s linear infinite;
+            font-size: 1.2em;
+        }
+
+        @keyframes rotate {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Control Panel */
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--glass-bg);
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .filter-group select {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: var(--text-primary);
+            padding: 8px 15px;
+            border-radius: 8px;
+            min-width: 150px;
+        }
+
+        .filter-group select option {
+            background: #1e293b;
+            color: var(--text-primary);
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            background: rgba(15, 23, 42, 0.9);
+            border-color: #dc2626;
+        }
+
+        /* Material Items */
+        .material-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius-small);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: var(--transition-fast);
+        }
+
+        .material-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .material-item input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        /* Species Analysis */
+        .species-analysis {
+            display: grid;
+            gap: 25px;
+        }
+
+        .species-group {
+            background: var(--glass-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .species-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .species-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .species-bar {
+            flex: 1;
+        }
+
+        .species-bar-bg {
+            background: rgba(255, 255, 255, 0.1);
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .species-bar-fill {
+            height: 100%;
+            background: var(--danger-gradient);
+            border-radius: 5px;
+            transition: width 1s ease;
+        }
+
+        .species-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+
+        .species-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .species-count {
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        /* Utility Classes */
+        .hidden { display: none !important; }
+        
+        .text-gradient {
+            background: var(--danger-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .charts-container { 
+                grid-template-columns: 1fr; 
+            }
+            
+            .form-row { 
+                grid-template-columns: 1fr; 
+            }
+            
+            .stats-grid { 
+                grid-template-columns: 1fr; 
+            }
+            
+            .header h1 { 
+                font-size: 2.5em; 
+            }
+            
+            .stat-number { 
+                font-size: 2.8em; 
+            }
+            
+            .modal-content { 
+                width: 95%; 
+                padding: 25px; 
+                margin: 20px auto;
+            }
+            
+            .control-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .floating-action {
+                width: 70px;
+                height: 70px;
+                font-size: 2em;
+                bottom: 30px;
+                right: 30px;
+            }
+            
+            .timeline-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header {
+                margin: 15px;
+                padding: 25px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .stat-card {
+                padding: 25px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    
+    <div id="loading" class="loading-overlay hidden">
+        <div class="spinner-container">
+            <div class="spinner"></div>
+            <div class="spinner"></div>
+            <div class="spinner"></div>
+        </div>
+        <div class="loading-text">Carregando Sistema COPPA...</div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <div id="sync-status" class="sync-status hidden">
+        <span class="sync-icon">🔄</span>
+        <span>Sincronizando com Firebase...</span>
+    </div>
+
+    <div class="header">
+        <h1>🚨 APREENSÕES DE ANIMAIS - COPPA</h1>
+        <p>Sistema Avançado de Controle de Apreensões de Animais Silvestres</p>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card" style="--index: 0;">
+                <div class="stat-icon">🚔</div>
+                <div class="stat-number" id="total-operations">0</div>
+                <div class="stat-label">Operações Realizadas</div>
+            </div>
+            
+            <div class="stat-card" style="--index: 1;">
+                <div class="stat-icon">🦎</div>
+                <div class="stat-number" id="total-animals">0</div>
+                <div class="stat-label">Animais Apreendidos</div>
+            </div>
+            
+            <div class="stat-card" style="--index: 2;">
+                <div class="stat-icon">🔗</div>
+                <div class="stat-number" id="total-materials">0</div>
+                <div class="stat-label">Materiais Apreendidos</div>
+            </div>
+            
+            <div class="stat-card" style="--index: 3;">
+                <div class="stat-icon">📍</div>
+                <div class="stat-number" id="total-locations">0</div>
+                <div class="stat-label">Locais Diferentes</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🎯 Painel de Controle</h3>
+            <div class="control-panel">
+                <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                    <button class="btn btn-success" onclick="app.ui.openModal()">
+                        ➕ Nova Apreensão
+                    </button>
+                    <button class="btn btn-info" onclick="app.data.refreshData()">
+                        🔄 Atualizar Dados
+                    </button>
+                    <button class="btn btn-warning" onclick="app.export.exportCSV()">
+                        📊 Exportar Excel
+                    </button>
+                    <button class="btn" onclick="app.export.generatePDF()">
+                        📄 Relatório PDF
+                    </button>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filter-city">🔍 Filtrar por Cidade:</label>
+                    <select id="filter-city" onchange="app.filter.filterByCity()">
+                        <option value="">Todas as Cidades</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card">
+                <div class="chart-title">Apreensões por Tipo de Animal</div>
+                <canvas id="animalChart"></canvas>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-title">Evolução Mensal das Apreensões</div>
+                <canvas id="monthChart"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="location-stats">
+                <h3 style="margin-bottom: 25px; color: white; display: flex; align-items: center; gap: 10px;">
+                    📍 Ranking de Apreensões por Localização
+                </h3>
+                <div id="location-list"></div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-title">Top Materiais Apreendidos</div>
+                <canvas id="materialChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🐾 Análise Detalhada de Espécies</h3>
+            <div id="species-analysis" class="species-analysis"></div>
+        </div>
+
+        <div class="card">
+            <h3>📅 Linha do Tempo - Histórico de Apreensões</h3>
+            <div id="timeline" class="timeline"></div>
+        </div>
+    </div>
+
+    <div id="apreensaoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="app.ui.closeModal()">&times;</span>
+            <h2 id="modal-title" class="text-gradient" style="margin-bottom: 30px; font-size: 2em;">Registrar Nova Apreensão</h2>
+            
+            <form id="apreensaoForm" onsubmit="app.form.handleSubmit(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="date">📅 Data da Apreensão:</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="time">⏰ Horário:</label>
+                        <input type="time" id="time" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="city">🏙️ Cidade:</label>
+                        <select id="city" required onchange="app.location.updateNeighborhoods()">
+                            <option value="">Selecione a cidade...</option>
+                            <option value="Salvador">Salvador</option>
+                            <option value="Camaçari">Camaçari</option>
+                            <option value="Lauro de Freitas">Lauro de Freitas</option>
+                            <option value="Feira de Santana">Feira de Santana</option>
+                            <option value="Simões Filho">Simões Filho</option>
+                            <option value="Candeias">Candeias</option>
+                            <option value="Dias d'Ávila">Dias d'Ávila</option>
+                            <option value="São Francisco do Conde">São Francisco do Conde</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="neighborhood">🏘️ Bairro:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="neighborhood" style="flex: 1;" onchange="app.location.handleNeighborhoodSelect()">
+                                <option value="">Selecione a cidade primeiro...</option>
+                            </select>
+                            <input type="text" id="neighborhood-manual" placeholder="Ou digite o bairro..." style="flex: 1; display: none;">
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9em; cursor: pointer;">
+                                <input type="checkbox" id="manual-neighborhood" onchange="app.location.toggleManualNeighborhood()" style="margin: 0;">
+                                <span style="color: var(--text-light);">Digitar bairro manualmente</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>🦎 Animais Apreendidos:</label>
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <select id="animal-type" style="flex: 2; min-width: 200px;">
+                            <option value="">Tipo de animal...</option>
+                            <option value="Serpente">🐍 Serpente</option>
+                            <option value="Iguana">🦎 Iguana</option>
+                            <option value="Teiú">🦎 Teiú</option>
+                            <option value="Jabuti">🐢 Jabuti</option>
+                            <option value="Cágado">🐢 Cágado</option>
+                            <option value="Ave Silvestre">🦜 Ave Silvestre</option>
+                            <option value="Primata">🐒 Primata</option>
+                            <option value="Mamífero">🦔 Mamífero</option>
+                            <option value="Crocodiliano">🐊 Crocodiliano</option>
+                            <option value="Aranha">🕷️ Aranha</option>
+                            <option value="Escorpião">🦂 Escorpião</option>
+                            <option value="Outro">❓ Outro</option>
+                        </select>
+                        <input type="text" id="animal-species" placeholder="Espécie (ex: Jiboia)" style="flex: 2; min-width: 150px;">
+                        <input type="number" id="animal-quantity" placeholder="Qtd" min="1" value="1" style="flex: 1; min-width: 80px;">
+                        <button type="button" class="btn btn-success" onclick="app.animals.addAnimal()">
+                            ➕ Adicionar
+                        </button>
+                    </div>
+                    <div id="animal-list" class="animal-list"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>🔗 Materiais Apreendidos:</label>
+                    <div id="materials-list">
+                        <div class="material-item">
+                            <input type="text" placeholder="Ex: Gaiolas" class="material-type">
+                            <input type="number" placeholder="Quantidade" class="material-quantity" min="0">
+                            <button type="button" class="btn btn-danger" onclick="app.materials.removeMaterial(this)">❌</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-info" onclick="app.materials.addMaterial()">
+                        ➕ Adicionar Material
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="responsible">👮 Responsável pela Operação:</label>
+                    <input type="text" id="responsible" placeholder="Nome do agente responsável" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="observations">📝 Observações:</label>
+                    <textarea id="observations" rows="4" placeholder="Detalhes da operação, estado dos animais, circunstâncias especiais..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="photos-link">📸 Link das Fotos da Operação:</label>
+                    <input type="url" id="photos-link" placeholder="https://drive.google.com/... ou outro link para fotos">
+                    <small style="color: var(--text-light); font-size: 0.85em; margin-top: 5px; display: block;">
+                        💡 Cole aqui o link do Google Drive, Dropbox ou outro serviço onde as fotos estão armazenadas
+                    </small>
+                </div>
+                
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button type="button" class="btn" onclick="app.ui.closeModal()">
+                        ❌ Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success" style="flex: 1;">
+                        <span id="submit-text">💾 Salvar Apreensão</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <button class="floating-action" onclick="app.ui.openModal()">+</button>
+
+    <script>
+        // Initialize particles background
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 40, density: { enable: true, value_area: 800 } },
+                color: { value: "#94a3b8" },
+                shape: { 
+                    type: "circle",
+                    stroke: { width: 0, color: "#000000" },
+                    polygon: { nb_sides: 5 }
+                },
+                opacity: {
+                    value: 0.15,
+                    random: false,
+                    anim: { enable: false, speed: 1, opacity_min: 0.1, sync: false }
+                },
+                size: {
+                    value: 3,
+                    random: true,
+                    anim: { enable: false, speed: 40, size_min: 0.1, sync: false }
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#94a3b8",
+                    opacity: 0.1,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 1,
+                    direction: "none",
+                    random: false,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false,
+                    attract: { enable: false, rotateX: 600, rotateY: 1200 }
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: { enable: true, mode: "repulse" },
+                    onclick: { enable: true, mode: "push" },
+                    resize: true
+                },
+                modes: {
+                    grab: { distance: 400, line_linked: { opacity: 1 } },
+                    bubble: { distance: 400, size: 40, duration: 2, opacity: 8, speed: 3 },
+                    repulse: { distance: 100, duration: 0.4 },
+                    push: { particles_nb: 4 },
+                    remove: { particles_nb: 2 }
+                }
+            },
+            retina_detect: true
+        });
+
+        class FirebaseService {
+            constructor() {
+                this.db = null;
+                this.isReady = false;
+            }
+
+            async init() {
+                await this.waitForFirebase();
+                this.db = window.firebaseDB;
+                this.isReady = true;
+            }
+
+            async waitForFirebase() {
+                const maxWaitTime = 10000;
+                const checkInterval = 100;
+                let waitedTime = 0;
+                
+                while (!window.firebaseDB && waitedTime < maxWaitTime) {
+                    await new Promise(resolve => setTimeout(resolve, checkInterval));
+                    waitedTime += checkInterval;
+                }
+                
+                if (!window.firebaseDB) {
+                    throw new Error('Firebase não foi carregado corretamente');
+                }
+            }
+
+            async create(data) {
+                const { db, collection, addDoc, serverTimestamp } = this.db;
+                const dataWithTimestamp = {
+                    ...data,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                };
+                const docRef = await addDoc(collection(db, "apreensoes"), dataWithTimestamp);
+                return docRef.id;
+            }
+
+            async readAll() {
+                const { db, collection, getDocs, query, orderBy } = this.db;
+                const q = query(collection(db, "apreensoes"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                const data = [];
+                querySnapshot.forEach((doc) => {
+                    data.push({ id: doc.id, ...doc.data() });
+                });
+                return data;
+            }
+
+            async update(id, data) {
+                const { db, doc, updateDoc, serverTimestamp } = this.db;
+                const dataWithTimestamp = {
+                    ...data,
+                    updatedAt: serverTimestamp()
+                };
+                await updateDoc(doc(db, "apreensoes", id), dataWithTimestamp);
+            }
+
+            async delete(id) {
+                const { db, doc, deleteDoc } = this.db;
+                await deleteDoc(doc(db, "apreensoes", id));
+            }
+        }
+
+        class UIService {
+            constructor() {
+                this.loadingElement = document.getElementById('loading');
+                this.syncStatusElement = document.getElementById('sync-status');
+                this.toastContainer = document.getElementById('toast-container');
+                this.modal = document.getElementById('apreensaoModal');
+            }
+
+            showLoading() {
+                this.loadingElement.classList.remove('hidden');
+            }
+
+            hideLoading() {
+                this.loadingElement.classList.add('hidden');
+            }
+
+            showSyncStatus() {
+                this.syncStatusElement.classList.remove('hidden');
+            }
+
+            hideSyncStatus() {
+                this.syncStatusElement.classList.add('hidden');
+            }
+
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                const icons = {
+                    success: '✅',
+                    error: '❌',
+                    warning: '⚠️',
+                    info: 'ℹ️'
+                };
+                
+                toast.innerHTML = `
+                    <div class="toast-icon">${icons[type]}</div>
+                    <div class="toast-message">${message}</div>
+                `;
+                
+                this.toastContainer.appendChild(toast);
+                
+                // Trigger animation
+                requestAnimationFrame(() => {
+                    toast.classList.add('show');
+                });
+                
+                // Auto remove
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        if (toast.parentNode) {
+                            toast.remove();
+                        }
+                    }, 400);
+                }, 4000);
+            }
+
+            openModal() {
+                this.modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                
+                // Reset form if not editing
+                if (!app.form.editingId) {
+                    document.getElementById('modal-title').textContent = 'Registrar Nova Apreensão';
+                    document.getElementById('submit-text').textContent = '💾 Salvar Apreensão';
+                    document.getElementById('apreensaoForm').reset();
+                    
+                    // Reset animals
+                    app.animals.currentAnimals = [];
+                    app.animals.updateAnimalList();
+                    
+                    // Set current date and time
+                    const now = new Date();
+                    document.getElementById('date').value = now.toISOString().split('T')[0];
+                    document.getElementById('time').value = now.toTimeString().slice(0, 5);
+                    
+                    // Reset materials to default
+                    document.getElementById('materials-list').innerHTML = `
+                        <div class="material-item">
+                            <input type="text" placeholder="Ex: Gaiolas" class="material-type">
+                            <input type="number" placeholder="Quantidade" class="material-quantity" min="0">
+                            <button type="button" class="btn btn-danger" onclick="app.materials.removeMaterial(this)">❌</button>
+                        </div>
+                    `;
+                    
+                    // Reset neighborhood
+                    document.getElementById('neighborhood').innerHTML = '<option value="">Selecione a cidade primeiro...</option>';
+                    document.getElementById('neighborhood-manual').value = '';
+                    document.getElementById('manual-neighborhood').checked = false;
+                    app.location.isManualNeighborhood = false;
+                    document.getElementById('neighborhood').style.display = 'block';
+                    document.getElementById('neighborhood-manual').style.display = 'none';
+                    document.getElementById('neighborhood').required = true;
+                    document.getElementById('neighborhood-manual').required = false;
+                }
+            }
+
+            closeModal() {
+                this.modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                app.form.editingId = null;
+                app.animals.currentAnimals = [];
+                document.getElementById('modal-title').textContent = 'Registrar Nova Apreensão';
+                document.getElementById('submit-text').textContent = '💾 Salvar Apreensão';
+            }
+        }
+
+        class DataManager {
+            constructor(firebaseService, uiService) {
+                this.firebase = firebaseService;
+                this.ui = uiService;
+                this.apreensoes = [];
+            }
+
+            async loadData() {
+                this.ui.showLoading();
+                try {
+                    this.apreensoes = await this.firebase.readAll();
+                    this.ui.hideLoading();
+                } catch (error) {
+                    console.error("Erro ao carregar dados:", error);
+                    this.ui.showToast('Erro ao carregar dados do Firebase', 'error');
+                    this.ui.hideLoading();
+                    throw error;
+                }
+            }
+
+            async saveData(data) {
+                this.ui.showSyncStatus();
+                try {
+                    const id = await this.firebase.create(data);
+                    this.ui.hideSyncStatus();
+                    return id;
+                } catch (error) {
+                    console.error("Erro ao salvar dados:", error);
+                    this.ui.showToast('Erro ao salvar dados', 'error');
+                    this.ui.hideSyncStatus();
+                    throw error;
+                }
+            }
+
+            async updateData(id, data) {
+                this.ui.showSyncStatus();
+                try {
+                    await this.firebase.update(id, data);
+                    this.ui.hideSyncStatus();
+                } catch (error) {
+                    console.error("Erro ao atualizar dados:", error);
+                    this.ui.showToast('Erro ao atualizar dados', 'error');
+                    this.ui.hideSyncStatus();
+                    throw error;
+                }
+            }
+
+            async deleteData(id) {
+                this.ui.showSyncStatus();
+                try {
+                    await this.firebase.delete(id);
+                    this.ui.hideSyncStatus();
+                } catch (error) {
+                    console.error("Erro ao deletar dados:", error);
+                    this.ui.showToast('Erro ao deletar dados', 'error');
+                    this.ui.hideSyncStatus();
+                    throw error;
+                }
+            }
+
+            async refreshData() {
+                await this.loadData();
+                app.dashboard.updateDashboard();
+                this.ui.showToast('Dados atualizados com sucesso!', 'success');
+            }
+
+            getFilteredData() {
+                const cityFilter = document.getElementById('filter-city').value;
+                return cityFilter ? 
+                    this.apreensoes.filter(a => a.city === cityFilter) : 
+                    this.apreensoes;
+            }
+        }
+
+        class AnimalManager {
+            constructor() {
+                this.currentAnimals = [];
+                this.animalIcons = {
+                    'Serpente': '🐍',
+                    'Iguana': '🦎',
+                    'Teiú': '🦎',
+                    'Jabuti': '🐢',
+                    'Cágado': '🐢',
+                    'Ave Silvestre': '🦜',
+                    'Primata': '🐒',
+                    'Mamífero': '🦔',
+                    'Crocodiliano': '🐊',
+                    'Aranha': '🕷️',
+                    'Escorpião': '🦂',
+                    'Outro': '❓'
+                };
+            }
+
+            addAnimal() {
+                const type = document.getElementById('animal-type').value;
+                const species = document.getElementById('animal-species').value;
+                const quantity = parseInt(document.getElementById('animal-quantity').value) || 1;
+                
+                if (!type || !species) {
+                    app.ui.showToast('Por favor, selecione o tipo e espécie do animal', 'error');
+                    return;
+                }
+                
+                this.currentAnimals.push({ type, species, quantity });
+                this.updateAnimalList();
+                
+                document.getElementById('animal-type').value = '';
+                document.getElementById('animal-species').value = '';
+                document.getElementById('animal-quantity').value = '1';
+                document.getElementById('animal-species').focus();
+            }
+
+            removeAnimal(index) {
+                this.currentAnimals.splice(index, 1);
+                this.updateAnimalList();
+            }
+
+            updateAnimalList() {
+                const list = document.getElementById('animal-list');
+                list.innerHTML = this.currentAnimals.map((animal, index) => `
+                    <div class="animal-tag">
+                        ${this.animalIcons[animal.type]} ${animal.species} (${animal.quantity})
+                        <span class="remove" onclick="app.animals.removeAnimal(${index})">×</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        class MaterialManager {
+            addMaterial() {
+                const list = document.getElementById('materials-list');
+                const item = document.createElement('div');
+                item.className = 'material-item';
+                item.innerHTML = `
+                    <input type="text" placeholder="Ex: Redes" class="material-type">
+                    <input type="number" placeholder="Quantidade" class="material-quantity" min="0">
+                    <button type="button" class="btn btn-danger" onclick="app.materials.removeMaterial(this)">❌</button>
+                `;
+                list.appendChild(item);
+            }
+
+            removeMaterial(button) {
+                if (document.querySelectorAll('.material-item').length > 1) {
+                    button.parentElement.remove();
+                } else {
+                    app.ui.showToast('Deve haver pelo menos um campo de material', 'warning');
+                }
+            }
+
+            getMaterials() {
+                const materials = [];
+                document.querySelectorAll('.material-item').forEach(item => {
+                    const type = item.querySelector('.material-type').value;
+                    const quantity = parseInt(item.querySelector('.material-quantity').value) || 0;
+                    if (type && quantity > 0) {
+                        materials.push({ type, quantity });
+                    }
+                });
+                return materials;
+            }
+        }
+
+        class LocationManager {
+            constructor() {
+                this.neighborhoods = {
+                    'Salvador': ['Centro', 'Pituba', 'Barra', 'Ondina', 'Itapuã', 'Brotas', 'Graça', 'Rio Vermelho', 'Amaralina', 'Imbuí', 'Pernambués', 'Cabula', 'Liberdade', 'São Caetano', 'Fazenda Grande', 'Cajazeiras', 'Periperi', 'Paripe', 'São Cristóvão', 'Mussurunga'],
+                    'Camaçari': ['Centro', 'Industrial', 'Verdes Horizontes', 'Barra do Jacuípe', 'Arembepe', 'Monte Gordo', 'Guarajuba', 'Barra do Pojuca'],
+                    'Lauro de Freitas': ['Centro', 'Vilas do Atlântico', 'Buraquinho', 'Ipitanga', 'Areia Branca', 'Caji', 'Miragem'],
+                    'Feira de Santana': ['Centro', 'Tomba', 'Mangabeira', 'Feira VI', 'Feira VII', 'Feira IX', 'Feira X', 'SIM', 'Muchila', 'Aviário'],
+                    'Simões Filho': ['Centro', 'Pitanguinha', 'CIA', 'Km 25', 'Mapele', 'Cotegipe'],
+                    'Candeias': ['Centro', 'Sarandi', 'Urbis', 'Caroba', 'Passé'],
+                    "Dias d'Ávila": ['Centro', 'Entroncamento', 'Concórdia', 'Imbassaí'],
+                    'São Francisco do Conde': ['Centro', 'Paramirim', 'Muribeca', 'Santo Estevão']
+                };
+                this.isManualNeighborhood = false;
+            }
+
+            updateNeighborhoods() {
+                const city = document.getElementById('city').value;
+                const neighborhoodSelect = document.getElementById('neighborhood');
+                
+                neighborhoodSelect.innerHTML = '<option value="">Selecione o bairro...</option>';
+                
+                if (city && this.neighborhoods[city] && !this.isManualNeighborhood) {
+                    this.neighborhoods[city].forEach(neighborhood => {
+                        const option = document.createElement('option');
+                        option.value = neighborhood;
+                        option.textContent = neighborhood;
+                        neighborhoodSelect.appendChild(option);
+                    });
+                    
+                    // Add manual option
+                    const manualOption = document.createElement('option');
+                    manualOption.value = 'MANUAL';
+                    manualOption.textContent = '✏️ Digitar outro bairro...';
+                    neighborhoodSelect.appendChild(manualOption);
+                }
+            }
+
+            handleNeighborhoodSelect() {
+                const select = document.getElementById('neighborhood');
+                const manualInput = document.getElementById('neighborhood-manual');
+                const checkbox = document.getElementById('manual-neighborhood');
+                
+                if (select.value === 'MANUAL') {
+                    checkbox.checked = true;
+                    this.toggleManualNeighborhood();
+                }
+            }
+
+            toggleManualNeighborhood() {
+                const checkbox = document.getElementById('manual-neighborhood');
+                const select = document.getElementById('neighborhood');
+                const manualInput = document.getElementById('neighborhood-manual');
+                
+                this.isManualNeighborhood = checkbox.checked;
+                
+                if (this.isManualNeighborhood) {
+                    select.style.display = 'none';
+                    manualInput.style.display = 'block';
+                    manualInput.required = true;
+                    select.required = false;
+                    manualInput.focus();
+                } else {
+                    select.style.display = 'block';
+                    manualInput.style.display = 'none';
+                    manualInput.required = false;
+                    select.required = true;
+                    manualInput.value = '';
+                    this.updateNeighborhoods();
+                }
+            }
+
+            getSelectedNeighborhood() {
+                if (this.isManualNeighborhood) {
+                    return document.getElementById('neighborhood-manual').value;
+                } else {
+                    return document.getElementById('neighborhood').value;
+                }
+            }
+        }
+
+        class FormManager {
+            constructor() {
+                this.editingId = null;
+            }
+
+            async handleSubmit(event) {
+                event.preventDefault();
+                
+                if (app.animals.currentAnimals.length === 0) {
+                    app.ui.showToast('Adicione pelo menos um animal apreendido', 'error');
+                    return;
+                }
+                
+                const materials = app.materials.getMaterials();
+                
+                const apreensaoData = {
+                    date: document.getElementById('date').value,
+                    time: document.getElementById('time').value,
+                    city: document.getElementById('city').value,
+                    neighborhood: app.location.getSelectedNeighborhood(),
+                    animals: [...app.animals.currentAnimals],
+                    materials: materials,
+                    responsible: document.getElementById('responsible').value,
+                    observations: document.getElementById('observations').value,
+                    photosLink: document.getElementById('photos-link').value
+                };
+                
+                try {
+                    if (this.editingId) {
+                        await app.data.updateData(this.editingId, apreensaoData);
+                        app.ui.showToast('Apreensão atualizada com sucesso!', 'success');
+                    } else {
+                        await app.data.saveData(apreensaoData);
+                        app.ui.showToast('Apreensão registrada com sucesso!', 'success');
+                    }
+                    
+                    await app.data.loadData();
+                    app.dashboard.updateDashboard();
+                    app.ui.closeModal();
+                } catch (error) {
+                    app.ui.showToast('Erro ao salvar. Tente novamente.', 'error');
+                }
+            }
+
+            async editApreensao(id) {
+                const apreensao = app.data.apreensoes.find(a => a.id === id);
+                if (!apreensao) return;
+                
+                // Set editing mode
+                this.editingId = id;
+                
+                // Update modal title
+                document.getElementById('modal-title').textContent = 'Editar Apreensão';
+                document.getElementById('submit-text').textContent = '💾 Atualizar Apreensão';
+                
+                // Load animals
+                app.animals.currentAnimals = [...apreensao.animals];
+                
+                // Load form data
+                document.getElementById('date').value = apreensao.date;
+                document.getElementById('time').value = apreensao.time;
+                document.getElementById('city').value = apreensao.city;
+                document.getElementById('responsible').value = apreensao.responsible;
+                document.getElementById('observations').value = apreensao.observations || '';
+                document.getElementById('photos-link').value = apreensao.photosLink || '';
+                
+                // Update neighborhoods and set the neighborhood
+                app.location.updateNeighborhoods();
+                
+                // Use requestAnimationFrame to ensure DOM is updated
+                requestAnimationFrame(() => {
+                    if (app.location.isManualNeighborhood) {
+                        document.getElementById('manual-neighborhood').checked = true;
+                        app.location.toggleManualNeighborhood();
+                        document.getElementById('neighborhood-manual').value = apreensao.neighborhood;
+                    } else {
+                        document.getElementById('neighborhood').value = apreensao.neighborhood;
+                    }
+                });
+                
+                // Load materials
+                const materialsList = document.getElementById('materials-list');
+                materialsList.innerHTML = '';
+                
+                if (apreensao.materials && apreensao.materials.length > 0) {
+                    apreensao.materials.forEach(material => {
+                        const item = document.createElement('div');
+                        item.className = 'material-item';
+                        item.innerHTML = `
+                            <input type="text" placeholder="Ex: Gaiolas" class="material-type" value="${material.type}">
+                            <input type="number" placeholder="Quantidade" class="material-quantity" min="0" value="${material.quantity}">
+                            <button type="button" class="btn btn-danger" onclick="app.materials.removeMaterial(this)">❌</button>
+                        `;
+                        materialsList.appendChild(item);
+                    });
+                } else {
+                    // Add default empty material if none exists
+                    const item = document.createElement('div');
+                    item.className = 'material-item';
+                    item.innerHTML = `
+                        <input type="text" placeholder="Ex: Gaiolas" class="material-type">
+                        <input type="number" placeholder="Quantidade" class="material-quantity" min="0">
+                        <button type="button" class="btn btn-danger" onclick="app.materials.removeMaterial(this)">❌</button>
+                    `;
+                    materialsList.appendChild(item);
+                }
+                
+                // Update animal list display
+                app.animals.updateAnimalList();
+                
+                // Open modal
+                app.ui.openModal();
+            }
+
+            async deleteApreensao(id) {
+                if (confirm('Tem certeza que deseja excluir esta apreensão?')) {
+                    try {
+                        await app.data.deleteData(id);
+                        await app.data.loadData();
+                        app.dashboard.updateDashboard();
+                        app.ui.showToast('Apreensão excluída com sucesso!', 'success');
+                    } catch (error) {
+                        app.ui.showToast('Erro ao excluir. Tente novamente.', 'error');
+                    }
+                }
+            }
+        }
+
+        class ChartManager {
+            constructor() {
+                this.charts = {};
+                this.chartColors = {
+                    primary: ['#dc2626', '#059669', '#d97706', '#0369a1', '#7c3aed', '#c2410c', '#0d9488', '#be185d'],
+                    gradients: [
+                        'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                        'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                        'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                        'linear-gradient(135deg, #0369a1 0%, #075985 100%)',
+                        'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+                        'linear-gradient(135deg, #c2410c 0%, #9a3412 100%)'
+                    ]
+                };
+            }
+
+            updateCharts() {
+                Object.values(this.charts).forEach(chart => chart && chart.destroy());
+                
+                this.createAnimalChart();
+                this.createMonthChart();
+                this.createMaterialChart();
+            }
+
+            createAnimalChart() {
+                const animalCounts = {};
+                app.data.apreensoes.forEach(apreensao => {
+                    apreensao.animals.forEach(animal => {
+                        animalCounts[animal.type] = (animalCounts[animal.type] || 0) + animal.quantity;
+                    });
+                });
+                
+                const ctx = document.getElementById('animalChart').getContext('2d');
+                this.charts.animal = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(animalCounts),
+                        datasets: [{
+                            data: Object.values(animalCounts),
+                            backgroundColor: this.chartColors.primary,
+                            borderWidth: 3,
+                            borderColor: 'rgba(255, 255, 255, 0.8)',
+                            hoverBorderWidth: 5,
+                            hoverBorderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    font: { size: 12, weight: '600' },
+                                    color: '#f8fafc',
+                                    usePointStyle: true,
+                                    pointStyle: 'circle',
+                                    generateLabels: function(chart) {
+                                        const data = chart.data;
+                                        const total = data.datasets[0].data.reduce((sum, value) => sum + value, 0);
+                                        
+                                        return data.labels.map((label, index) => {
+                                            const value = data.datasets[0].data[index];
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            
+                                            return {
+                                                text: `${label}: ${value} (${percentage}%)`,
+                                                fillStyle: data.datasets[0].backgroundColor[index],
+                                                strokeStyle: data.datasets[0].backgroundColor[index],
+                                                lineWidth: 0,
+                                                pointStyle: 'circle'
+                                            };
+                                        });
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(45, 52, 54, 0.95)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: 'rgba(255, 255, 255, 0.2)',
+                                borderWidth: 1,
+                                cornerRadius: 12,
+                                displayColors: true,
+                                callbacks: {
+                                    label: (context) => {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                        return `${context.label}: ${context.parsed} animais (${percentage}%)`;
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                display: true,
+                                color: '#fff',
+                                font: {
+                                    weight: 'bold',
+                                    size: 12
+                                },
+                                formatter: (value, context) => {
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return percentage > 5 ? `${value}\n(${percentage}%)` : '';
+                                },
+                                textAlign: 'center'
+                            }
+                        },
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeInOutQuart'
+                        },
+                        layout: {
+                            padding: {
+                                top: 20,
+                                bottom: 20
+                            }
+                        }
+                    },
+                    plugins: [{
+                        afterDatasetsDraw: function(chart) {
+                            const ctx = chart.ctx;
+                            const data = chart.data.datasets[0].data;
+                            const total = data.reduce((sum, value) => sum + value, 0);
+                            
+                            chart.data.datasets.forEach((dataset, datasetIndex) => {
+                                const meta = chart.getDatasetMeta(datasetIndex);
+                                
+                                meta.data.forEach((arc, index) => {
+                                    const value = data[index];
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    
+                                    // Only show labels for slices larger than 5%
+                                    if (percentage > 5) {
+                                        const centerPoint = arc.tooltipPosition();
+                                        
+                                        ctx.save();
+                                        ctx.textAlign = 'center';
+                                        ctx.textBaseline = 'middle';
+                                        ctx.fillStyle = '#fff';
+                                        ctx.font = 'bold 11px Inter';
+                                        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                                        ctx.lineWidth = 2;
+                                        
+                                        // Draw text with outline
+                                        ctx.strokeText(`${value}`, centerPoint.x, centerPoint.y - 6);
+                                        ctx.fillText(`${value}`, centerPoint.x, centerPoint.y - 6);
+                                        
+                                        ctx.font = 'bold 9px Inter';
+                                        ctx.strokeText(`${percentage}%`, centerPoint.x, centerPoint.y + 6);
+                                        ctx.fillText(`${percentage}%`, centerPoint.x, centerPoint.y + 6);
+                                        
+                                        ctx.restore();
+                                    }
+                                });
+                            });
+                        }
+                    }]
+                });
+            }
+
+            createMonthChart() {
+                const monthCounts = {};
+                app.data.apreensoes.forEach(apreensao => {
+                    const month = apreensao.date.substring(0, 7);
+                    monthCounts[month] = (monthCounts[month] || 0) + 1;
+                });
+                
+                const sortedMonths = Object.keys(monthCounts).sort();
+                
+                const ctx = document.getElementById('monthChart').getContext('2d');
+                
+                // Create gradient
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(220, 38, 38, 0.3)');
+                gradient.addColorStop(1, 'rgba(185, 28, 28, 0.1)');
+                
+                this.charts.month = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: sortedMonths.map(m => {
+                            const [year, month] = m.split('-');
+                            const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+                                              'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                            return `${monthNames[parseInt(month) - 1]}/${year.slice(-2)}`;
+                        }),
+                        datasets: [{
+                            label: 'Apreensões',
+                            data: sortedMonths.map(m => monthCounts[m]),
+                            borderColor: '#dc2626',
+                            backgroundColor: gradient,
+                            borderWidth: 4,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#dc2626',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 3,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            pointHoverBackgroundColor: '#b91c1c',
+                            pointHoverBorderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(45, 52, 54, 0.9)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: 'rgba(255, 255, 255, 0.2)',
+                                borderWidth: 1,
+                                cornerRadius: 10
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { 
+                                    stepSize: 1,
+                                    color: '#636e72',
+                                    font: { weight: '600' }
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)',
+                                    drawBorder: false
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: '#636e72',
+                                    font: { weight: '600' }
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeInOutQuart'
+                        }
+                    }
+                });
+            }
+
+            createMaterialChart() {
+                const materialCounts = {};
+                app.data.apreensoes.forEach(apreensao => {
+                    apreensao.materials.forEach(material => {
+                        materialCounts[material.type] = (materialCounts[material.type] || 0) + material.quantity;
+                    });
+                });
+                
+                const topMaterials = Object.entries(materialCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 8);
+                
+                const ctx = document.getElementById('materialChart').getContext('2d');
+                
+                this.charts.material = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: topMaterials.map(m => m[0]),
+                        datasets: [{
+                            label: 'Quantidade',
+                            data: topMaterials.map(m => m[1]),
+                            backgroundColor: this.chartColors.primary.slice(0, topMaterials.length),
+                            borderColor: 'rgba(255, 255, 255, 0.8)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(45, 52, 54, 0.9)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: 'rgba(255, 255, 255, 0.2)',
+                                borderWidth: 1,
+                                cornerRadius: 10
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { 
+                                    stepSize: 1,
+                                    color: '#636e72',
+                                    font: { weight: '600' }
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)',
+                                    drawBorder: false
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: '#636e72',
+                                    font: { weight: '600' },
+                                    maxRotation: 45
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeInOutQuart'
+                        }
+                    }
+                });
+            }
+        }
+
+        class DashboardManager {
+            constructor() {
+                this.charts = new ChartManager();
+            }
+
+            updateDashboard() {
+                this.updateStats();
+                this.charts.updateCharts();
+                this.updateLocationStats();
+                this.updateSpeciesAnalysis();
+                this.updateTimeline();
+                this.updateCityFilter();
+            }
+
+            updateStats() {
+                this.animateNumber('total-operations', app.data.apreensoes.length);
+                
+                const totalAnimals = app.data.apreensoes.reduce((sum, a) => 
+                    sum + a.animals.reduce((s, animal) => s + animal.quantity, 0), 0
+                );
+                this.animateNumber('total-animals', totalAnimals);
+                
+                const totalMaterials = app.data.apreensoes.reduce((sum, a) => 
+                    sum + a.materials.reduce((s, material) => s + material.quantity, 0), 0
+                );
+                this.animateNumber('total-materials', totalMaterials);
+                
+                const locations = new Set(app.data.apreensoes.map(a => `${a.city} - ${a.neighborhood}`));
+                this.animateNumber('total-locations', locations.size);
+            }
+
+            animateNumber(elementId, targetValue) {
+                const element = document.getElementById(elementId);
+                const currentValue = parseInt(element.textContent) || 0;
+                const increment = Math.ceil((targetValue - currentValue) / 20);
+                
+                if (currentValue < targetValue) {
+                    element.textContent = Math.min(currentValue + increment, targetValue);
+                    setTimeout(() => this.animateNumber(elementId, targetValue), 50);
+                } else {
+                    element.textContent = targetValue;
+                }
+            }
+
+            updateLocationStats() {
+                const locationCounts = {};
+                app.data.apreensoes.forEach(apreensao => {
+                    const location = `${apreensao.city} - ${apreensao.neighborhood}`;
+                    locationCounts[location] = (locationCounts[location] || 0) + 1;
+                });
+                
+                const sortedLocations = Object.entries(locationCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 15);
+                
+                const list = document.getElementById('location-list');
+                list.innerHTML = sortedLocations.map(([location, count], index) => `
+                    <div class="location-item" style="animation: slideInLeft 0.5s ease ${index * 0.1}s both;">
+                        <span style="font-weight: 600; color: white;">${location}</span>
+                        <span class="location-count">${count}</span>
+                    </div>
+                `).join('');
+            }
+
+            updateSpeciesAnalysis() {
+                const speciesData = {};
+                
+                app.data.apreensoes.forEach(apreensao => {
+                    apreensao.animals.forEach(animal => {
+                        if (!speciesData[animal.type]) {
+                            speciesData[animal.type] = {};
+                        }
+                        speciesData[animal.type][animal.species] = 
+                            (speciesData[animal.type][animal.species] || 0) + animal.quantity;
+                    });
+                });
+                
+                const container = document.getElementById('species-analysis');
+                container.innerHTML = Object.entries(speciesData).map(([type, species]) => {
+                    const total = Object.values(species).reduce((sum, count) => sum + count, 0);
+                    const sortedSpecies = Object.entries(species).sort((a, b) => b[1] - a[1]);
+                    
+                    return `
+                        <div class="species-group">
+                            <div class="species-header">
+                                ${app.animals.animalIcons[type]} ${type} - Total: ${total} animais
+                            </div>
+                            <div style="display: grid; gap: 15px;">
+                                ${sortedSpecies.map(([speciesName, count]) => {
+                                    const percentage = ((count / total) * 100).toFixed(1);
+                                    return `
+                                        <div class="species-item">
+                                            <div class="species-bar">
+                                                <div class="species-info">
+                                                    <span class="species-name">${speciesName}</span>
+                                                    <span class="species-count">${count} (${percentage}%)</span>
+                                                </div>
+                                                <div class="species-bar-bg">
+                                                    <div class="species-bar-fill" style="width: ${percentage}%;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            updateTimeline() {
+                const timeline = document.getElementById('timeline');
+                const filteredApreensoes = app.data.getFilteredData();
+                
+                // Sort by date and time in descending order (most recent first)
+                const sortedApreensoes = filteredApreensoes.sort((a, b) => {
+                    const dateTimeA = new Date(`${a.date}T${a.time}`);
+                    const dateTimeB = new Date(`${b.date}T${b.time}`);
+                    return dateTimeB - dateTimeA; // Descending order
+                });
+                
+                timeline.innerHTML = sortedApreensoes.map((apreensao, index) => {
+                    // Calculate total animals for this operation
+                    const totalAnimals = apreensao.animals.reduce((sum, animal) => sum + animal.quantity, 0);
+                    const totalMaterials = apreensao.materials.reduce((sum, material) => sum + material.quantity, 0);
+                    
+                    return `
+                        <div class="timeline-item" style="animation: fadeInUp 0.6s ease ${index * 0.1}s both;">
+                            <div class="timeline-header">
+                                <div class="timeline-date">
+                                    📅 ${this.formatDate(apreensao.date)} às ${apreensao.time}
+                                </div>
+                                <div class="timeline-location">
+                                    📍 ${apreensao.city} - ${apreensao.neighborhood}
+                                </div>
+                            </div>
+                            
+                            <div style="margin: 15px 0; display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
+                                <div style="font-weight: 600; color: white;">
+                                    👮 Responsável: ${apreensao.responsible}
+                                </div>
+                                <div style="background: var(--success-gradient); color: white; padding: 8px 15px; border-radius: 20px; font-weight: 700; font-size: 0.9em; box-shadow: var(--shadow-light);">
+                                    🦎 ${totalAnimals} ${totalAnimals === 1 ? 'Animal' : 'Animais'} Apreendido${totalAnimals === 1 ? '' : 's'}
+                                </div>
+                                ${totalMaterials > 0 ? `
+                                    <div style="background: var(--warning-gradient); color: white; padding: 8px 15px; border-radius: 20px; font-weight: 700; font-size: 0.9em; box-shadow: var(--shadow-light);">
+                                        🔗 ${totalMaterials} ${totalMaterials === 1 ? 'Material' : 'Materiais'}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="animal-list">
+                                ${apreensao.animals.map(animal => `
+                                    <div class="animal-tag">
+                                        ${app.animals.animalIcons[animal.type]} ${animal.species} (${animal.quantity})
+                                    </div>
+                                `).join('')}
+                            </div>
+                            
+                            ${apreensao.materials.length > 0 ? `
+                                <div style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                                    <strong style="color: white;">🔗 Materiais Apreendidos:</strong>
+                                    <div style="margin-top: 8px; color: rgba(255, 255, 255, 0.9);">
+                                        ${apreensao.materials.map(m => `${m.type} (${m.quantity})`).join(' • ')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${apreensao.observations ? `
+                                <div style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; border-left: 4px solid #dc2626;">
+                                    <strong style="color: white;">📝 Observações:</strong>
+                                    <div style="margin-top: 8px; color: rgba(255, 255, 255, 0.9); font-style: italic;">
+                                        ${apreensao.observations}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${apreensao.photosLink ? `
+                                <div style="margin-top: 15px; padding: 15px; background: rgba(116, 185, 255, 0.1); border-radius: 12px; border-left: 4px solid #74b9ff; border: 1px solid rgba(116, 185, 255, 0.2);">
+                                    <strong style="color: white;">📸 Fotos da Operação:</strong>
+                                    <div style="margin-top: 10px;">
+                                        <a href="${apreensao.photosLink}" target="_blank" rel="noopener noreferrer" 
+                                           style="display: inline-flex; align-items: center; gap: 8px; background: var(--info-gradient); color: white; 
+                                                  padding: 10px 20px; border-radius: 25px; text-decoration: none; font-weight: 600; 
+                                                  box-shadow: var(--shadow-light); transition: var(--transition);"
+                                           onmouseover="this.style.transform='translateY(-2px) scale(1.05)'"
+                                           onmouseout="this.style.transform='translateY(0) scale(1)'">
+                                            <span>🔗</span>
+                                            <span>Visualizar Fotos</span>
+                                            <span style="font-size: 0.8em; opacity: 0.8;">↗</span>
+                                        </a>
+                                        <div style="margin-top: 5px; font-size: 0.8em; color: rgba(255, 255, 255, 0.7);">
+                                            ${this.getDomainFromUrl(apreensao.photosLink)}
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            updateCityFilter() {
+                const cities = [...new Set(app.data.apreensoes.map(a => a.city))].sort();
+                const select = document.getElementById('filter-city');
+                
+                select.innerHTML = '<option value="">Todas as Cidades</option>';
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    select.appendChild(option);
+                });
+            }
+
+            formatDate(dateString) {
+                const [year, month, day] = dateString.split('-');
+                return `${day}/${month}/${year}`;
+            }
+
+            getDomainFromUrl(url) {
+                if (!url) return '';
+                try {
+                    const domain = new URL(url).hostname;
+                    if (domain.includes('drive.google.com')) return '📁 Google Drive';
+                    if (domain.includes('dropbox.com')) return '📦 Dropbox';
+                    if (domain.includes('onedrive.live.com')) return '☁️ OneDrive';
+                    if (domain.includes('icloud.com')) return '☁️ iCloud';
+                    if (domain.includes('mega.nz')) return '🔒 MEGA';
+                    return `🌐 ${domain}`;
+                } catch {
+                    return '🔗 Link externo';
+                }
+            }
+        }
+
+        class FilterManager {
+            filterByCity() {
+                app.dashboard.updateDashboard();
+            }
+        }
+
+        class ExportManager {
+            exportCSV() {
+                const csv = this.generateCSV();
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `apreensoes_coppa_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+                
+                app.ui.showToast('Dados exportados com sucesso!', 'success');
+            }
+
+            generateCSV() {
+                let csv = 'Data,Hora,Cidade,Bairro,Responsável,Animais,Materiais,Observações,Link das Fotos\n';
+                
+                app.data.apreensoes.forEach(apreensao => {
+                    const animals = apreensao.animals
+                        .map(a => `${a.species} (${a.quantity})`)
+                        .join('; ');
+                    
+                    const materials = apreensao.materials
+                        .map(m => `${m.type} (${m.quantity})`)
+                        .join('; ');
+                    
+                    csv += `${apreensao.date},${apreensao.time},"${apreensao.city}","${apreensao.neighborhood}","${apreensao.responsible}","${animals}","${materials}","${apreensao.observations || ''}","${apreensao.photosLink || ''}"\n`;
+                });
+                
+                return csv;
+            }
+
+            generatePDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                // Configure font encoding
+                doc.setFont('helvetica');
+                
+                // Header with gradient effect
+                doc.setFillColor(220, 38, 38);
+                doc.rect(0, 0, 210, 45, 'F');
+                
+                doc.setFontSize(24);
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.text('COPPA - Sistema de Apreensoes', 105, 20, { align: 'center' });
+                
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Relatorio Completo de Apreensoes de Animais Silvestres', 105, 32, { align: 'center' });
+                
+                // Date and stats
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                const currentDate = new Date();
+                const dateStr = `${currentDate.getDate().toString().padStart(2, '0')}/${(currentDate.getMonth() + 1).toString().padStart(2, '0')}/${currentDate.getFullYear()}`;
+                const timeStr = `${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
+                doc.text(`Gerado em: ${dateStr} as ${timeStr}`, 20, 55);
+                
+                // Summary stats
+                const totalAnimals = app.data.apreensoes.reduce((sum, a) => 
+                    sum + a.animals.reduce((s, animal) => s + animal.quantity, 0), 0
+                );
+                const totalMaterials = app.data.apreensoes.reduce((sum, a) => 
+                    sum + a.materials.reduce((s, material) => s + material.quantity, 0), 0
+                );
+                
+                doc.setFontSize(16);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Resumo Executivo:', 20, 70);
+                
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`• Total de Operacoes Realizadas: ${app.data.apreensoes.length}`, 25, 80);
+                doc.text(`• Total de Animais Apreendidos: ${totalAnimals}`, 25, 88);
+                doc.text(`• Total de Materiais Apreendidos: ${totalMaterials}`, 25, 96);
+                doc.text(`• Periodo de Analise: ${app.data.apreensoes.length > 0 ? 'Ultimas ' + app.data.apreensoes.length + ' operacoes' : 'Sem dados'}`, 25, 104);
+                
+                // Function to clean text
+                const cleanText = (text) => {
+                    if (!text) return '';
+                    return text
+                        .replace(/[áàâãä]/g, 'a')
+                        .replace(/[éèêë]/g, 'e')
+                        .replace(/[íìîï]/g, 'i')
+                        .replace(/[óòôõö]/g, 'o')
+                        .replace(/[úùûü]/g, 'u')
+                        .replace(/[ç]/g, 'c')
+                        .replace(/[ÁÀÂÃÄ]/g, 'A')
+                        .replace(/[ÉÈÊË]/g, 'E')
+                        .replace(/[ÍÌÎÏ]/g, 'I')
+                        .replace(/[ÓÒÔÕÖ]/g, 'O')
+                        .replace(/[ÚÙÛÜ]/g, 'U')
+                        .replace(/[Ç]/g, 'C')
+                        .replace(/[ñ]/g, 'n')
+                        .replace(/[Ñ]/g, 'N')
+                        .replace(/[°]/g, 'o')
+                        .replace(/[ª]/g, 'a')
+                        .replace(/[\u2013\u2014]/g, '-') // em dash, en dash
+                        .replace(/[\u2018\u2019]/g, "'") // smart quotes
+                        .replace(/[\u201C\u201D]/g, '"') // smart double quotes
+                        .replace(/[^\x20-\x7E\u00A0-\u00FF]/g, ''); // remove other special chars
+                };
+                
+                // Table with enhanced styling and cleaned text
+                const tableData = app.data.apreensoes.slice(0, 20).map(a => [
+                    app.dashboard.formatDate(a.date),
+                    a.time,
+                    cleanText(`${a.city} - ${a.neighborhood}`),
+                    cleanText(a.animals.map(an => `${an.species} (${an.quantity})`).join(', ')),
+                    cleanText(a.responsible)
+                ]);
+                
+                doc.autoTable({
+                    head: [['Data', 'Hora', 'Local', 'Animais', 'Responsavel']],
+                    body: tableData,
+                    startY: 115,
+                    styles: { 
+                        fontSize: 9,
+                        cellPadding: 5,
+                        lineColor: [200, 200, 200],
+                        lineWidth: 0.5,
+                        font: 'helvetica',
+                        halign: 'left',
+                        valign: 'middle',
+                        overflow: 'linebreak'
+                    },
+                    headStyles: { 
+                        fillColor: [220, 38, 38],
+                        textColor: [255, 255, 255],
+                        fontStyle: 'bold',
+                        font: 'helvetica',
+                        halign: 'center'
+                    },
+                    alternateRowStyles: {
+                        fillColor: [248, 249, 250]
+                    },
+                    margin: { left: 15, right: 15 },
+                    columnStyles: {
+                        0: { cellWidth: 28, halign: 'center' }, // Data - aumentada
+                        1: { cellWidth: 18, halign: 'center' }, // Hora
+                        2: { cellWidth: 42, halign: 'left' },   // Local - reduzida
+                        3: { cellWidth: 60, halign: 'left' },   // Animais - reduzida
+                        4: { cellWidth: 32, halign: 'left' }    // Responsavel - aumentada
+                    },
+                    tableWidth: 'wrap'
+                });
+                
+                // Add statistics section if there's space
+                let finalY = doc.lastAutoTable.finalY + 15;
+                
+                if (finalY < 250) {
+                    doc.setFontSize(14);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Estatisticas por Tipo de Animal:', 20, finalY);
+                    
+                    const animalStats = {};
+                    app.data.apreensoes.forEach(apreensao => {
+                        apreensao.animals.forEach(animal => {
+                            animalStats[animal.type] = (animalStats[animal.type] || 0) + animal.quantity;
+                        });
+                    });
+                    
+                    const sortedAnimals = Object.entries(animalStats)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 8);
+                    
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'normal');
+                    finalY += 10;
+                    
+                    sortedAnimals.forEach(([type, count]) => {
+                        const percentage = ((count / totalAnimals) * 100).toFixed(1);
+                        doc.text(`• ${cleanText(type)}: ${count} animais (${percentage}%)`, 25, finalY);
+                        finalY += 6;
+                    });
+                }
+                
+                // Footer
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(128, 128, 128);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`Pagina ${i} de ${pageCount} | COPPA - Sistema de Controle de Apreensoes`, 105, 290, { align: 'center' });
+                }
+                
+                const fileName = `relatorio_coppa_${dateStr.replace(/\//g, '-')}.pdf`;
+                doc.save(fileName);
+                
+                app.ui.showToast('Relatorio PDF gerado com sucesso!', 'success');
+            }
+        }
+
+        class Application {
+            constructor() {
+                this.firebase = new FirebaseService();
+                this.ui = new UIService();
+                this.data = new DataManager(this.firebase, this.ui);
+                this.animals = new AnimalManager();
+                this.materials = new MaterialManager();
+                this.location = new LocationManager();
+                this.form = new FormManager();
+                this.dashboard = new DashboardManager();
+                this.filter = new FilterManager();
+                this.export = new ExportManager();
+            }
+
+            async init() {
+                try {
+                    await this.firebase.init();
+                    this.setupEventListeners();
+                    await this.data.loadData();
+                    this.dashboard.updateDashboard();
+                    
+                    // Set today's date and time
+                    const now = new Date();
+                    document.getElementById('date').value = now.toISOString().split('T')[0];
+                    document.getElementById('time').value = now.toTimeString().slice(0, 5);
+                    
+                    // Initialize with some sample data if empty
+                    if (app.data.apreensoes.length === 0) {
+                        this.ui.showToast('Sistema inicializado! Comece registrando uma nova apreensão.', 'info');
+                    }
+                    
+                    console.log('🚨 Sistema COPPA Premium iniciado com sucesso!');
+                } catch (error) {
+                    console.error('Erro ao inicializar aplicação:', error);
+                    this.ui.showToast('Erro ao inicializar. Verifique sua conexão e recarregue a página.', 'error');
+                }
+            }
+
+            setupEventListeners() {
+                // Modal click outside to close
+                window.onclick = (event) => {
+                    if (event.target.id === 'apreensaoModal') {
+                        this.ui.closeModal();
+                    }
+                };
+
+                // Enhanced keyboard shortcuts
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        this.ui.closeModal();
+                    }
+                    if (event.ctrlKey && event.key === 'n') {
+                        event.preventDefault();
+                        this.ui.openModal();
+                    }
+                    if (event.ctrlKey && event.key === 'r') {
+                        event.preventDefault();
+                        this.data.refreshData();
+                    }
+                    if (event.ctrlKey && event.key === 'e') {
+                        event.preventDefault();
+                        this.export.exportCSV();
+                    }
+                });
+
+                // Add smooth scrolling
+                document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                    anchor.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        document.querySelector(this.getAttribute('href')).scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    });
+                });
+            }
+        }
+
+        // Global app instance
+        const app = new Application();
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+        // Add some CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInLeft {
+                from { opacity: 0; transform: translateX(-30px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(30px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            /* Scroll animations */
+            .timeline-item {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            
+            .timeline-item.animate {
+                animation: fadeInUp 0.6s ease forwards;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                }
+            });
+        }, observerOptions);
+
+        // Observe timeline items when they're created
+        const originalUpdateTimeline = app?.dashboard?.updateTimeline;
+        if (originalUpdateTimeline) {
+            app.dashboard.updateTimeline = function() {
+                originalUpdateTimeline.call(this);
+                // Re-observe new timeline items
+                document.querySelectorAll('.timeline-item').forEach(item => {
+                    observer.observe(item);
+                });
+            };
+        }
+    </script>
+</body>
+</html>
