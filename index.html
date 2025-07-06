@@ -1043,9 +1043,9 @@
                 gap: 15px;
             }
             
-            .control-panel > div:first-child {
+            <div class="control-panel > div:first-child {
                 display: grid;
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 1fr 1fr 1fr;
                 gap: 10px;
             }
             
@@ -1395,7 +1395,7 @@
 
     <div class="header">
         <h1>🚨 APREENSÕES DE ANIMAIS - COPPA</h1>
-        <p>Controle de Apreensões de Animais Silvestres</p>
+        <p>Sistema Avançado de Controle de Apreensões de Animais Silvestres</p>
     </div>
 
     <div class="container">
@@ -1608,7 +1608,7 @@
         </div>
     </div>
 
-    <button class="floating-action" onclick="app.ui.openModal()">+</button>
+    <button class="floating-action" onclick="app.data.refreshData()" title="Atualizar Dados">🔄</button>
 
     <script>
         // Initialize particles background
@@ -2579,6 +2579,19 @@
 
             updateLocationStats() {
                 const locationCounts = {};
+                
+                // Check if there are any records first
+                if (app.data.apreensoes.length === 0) {
+                    const list = document.getElementById('location-list');
+                    list.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                            <div style="font-size: 3em; margin-bottom: 15px; opacity: 0.3;">📍</div>
+                            <p style="font-size: 1.1em;">Nenhuma localização registrada ainda.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
                 app.data.apreensoes.forEach(apreensao => {
                     const location = `${apreensao.city} - ${apreensao.neighborhood}`;
                     locationCounts[location] = (locationCounts[location] || 0) + 1;
@@ -2599,6 +2612,18 @@
 
             updateSpeciesAnalysis() {
                 const speciesData = {};
+                
+                // Check if there are any records first
+                if (app.data.apreensoes.length === 0) {
+                    const container = document.getElementById('species-analysis');
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                            <div style="font-size: 3em; margin-bottom: 15px; opacity: 0.3;">🦎</div>
+                            <p style="font-size: 1.1em;">Nenhum dado de espécies disponível ainda.</p>
+                        </div>
+                    `;
+                    return;
+                }
                 
                 app.data.apreensoes.forEach(apreensao => {
                     apreensao.animals.forEach(animal => {
@@ -2646,6 +2671,21 @@
             updateTimeline() {
                 const timeline = document.getElementById('timeline');
                 const filteredApreensoes = app.data.getFilteredData();
+                
+                // Check if there are any records
+                if (filteredApreensoes.length === 0) {
+                    timeline.innerHTML = `
+                        <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                            <div style="font-size: 4em; margin-bottom: 20px; opacity: 0.3;">📋</div>
+                            <h3 style="color: var(--text-primary); margin-bottom: 15px;">Nenhuma Apreensão Registrada</h3>
+                            <p style="font-size: 1.1em; line-height: 1.6;">
+                                Não há registros de apreensões no sistema ainda.<br>
+                                Os dados aparecerão aqui conforme forem inseridos no Firebase.
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
                 
                 // Sort by date and time in descending order (most recent first)
                 const sortedApreensoes = filteredApreensoes.sort((a, b) => {
@@ -2995,9 +3035,9 @@
                     document.getElementById('date').value = now.toISOString().split('T')[0];
                     document.getElementById('time').value = now.toTimeString().slice(0, 5);
                     
-                    // Initialize with some sample data if empty
+                    // Show message if no data
                     if (app.data.apreensoes.length === 0) {
-                        this.ui.showToast('Sistema inicializado! Comece registrando uma nova apreensão.', 'info');
+                        this.ui.showToast('Nenhuma apreensão registrada ainda no sistema.', 'info');
                     }
                     
                     console.log('🚨 Sistema COPPA Premium iniciado com sucesso!');
