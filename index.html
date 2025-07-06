@@ -566,6 +566,8 @@
             animation: slideInScale 0.4s ease;
             box-shadow: var(--shadow-light);
             transition: var(--transition);
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .animal-tag:hover {
@@ -1091,6 +1093,8 @@
             .animal-tag {
                 padding: 8px 12px;
                 font-size: 0.85em;
+                white-space: nowrap;
+                flex-shrink: 0;
             }
             
             .filter-group {
@@ -1197,12 +1201,17 @@
             .animal-list {
                 gap: 6px;
                 margin-bottom: 12px;
+                display: flex !important;
+                flex-wrap: wrap !important;
             }
             
             .animal-tag {
-                padding: 6px 10px;
-                font-size: 0.8em;
-                border-radius: 20px;
+                padding: 4px 8px;
+                font-size: 0.75em;
+                border-radius: 15px;
+                line-height: 1.2;
+                white-space: nowrap;
+                flex-shrink: 0;
             }
             
             .control-panel > div:first-child {
@@ -1346,9 +1355,21 @@
                 padding: 15px 10px;
             }
             
+            .animal-list {
+                gap: 4px;
+                margin-bottom: 10px;
+            }
+            
             .animal-tag {
-                padding: 5px 8px;
-                font-size: 0.75em;
+                padding: 3px 6px;
+                font-size: 0.7em;
+                border-radius: 12px;
+                gap: 4px;
+                line-height: 1.1;
+            }
+            
+            .animal-tag span {
+                font-size: 0.9em;
             }
         }
     </style>
